@@ -1,7 +1,3 @@
-<?php
-
-declare(strict_types = 1);
-
 namespace Infinityloop\Utils\Json;
 
 abstract class JsonContract implements \Countable, \IteratorAggregate, \ArrayAccess, \Serializable, \Stringable

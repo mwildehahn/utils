@@ -1,16 +1,16 @@
-<?php
-
-declare(strict_types = 1);
-
 namespace Infinityloop\Utils\Json;
 
-final class MapJson extends \Infinityloop\Utils\Json\JsonContract
+final class SequentialJson extends \Infinityloop\Utils\Json\JsonContract
 {
     private ?string $string;
-    private ?\stdClass $data;
+    private ?array $data;
 
-    private function __construct(?string $json, ?\stdClass $data)
+    private function __construct(?string $json, ?array $data)
     {
+        if (\is_array($data) && \array_key_first($data) !== 0) {
+            throw new \RuntimeException('Associative array detected, use MapJson instead.');
+        }
+
         $this->string = $json;
         $this->data = $data;
     }
@@ -20,7 +20,7 @@ final class MapJson extends \Infinityloop\Utils\Json\JsonContract
         return new self($json, null);
     }
 
-    public static function fromNative(\stdClass $data) : self
+    public static function fromNative(array $data) : self
     {
         return new self(null, $data);
     }
@@ -32,52 +32,52 @@ final class MapJson extends \Infinityloop\Utils\Json\JsonContract
         return $this->string;
     }
 
-    public function toNative() : \stdClass
+    public function toNative() : array
     {
-        $this->loadObject();
+        $this->loadArray();
 
         return $this->data;
     }
 
     public function count() : int
     {
-        $this->loadObject();
+        $this->loadArray();
 
-        return \count((array) $this->data);
+        return \count($this->data);
     }
 
     public function getIterator() : \Iterator
     {
-        $this->loadObject();
+        $this->loadArray();
 
         return new \ArrayIterator($this->data);
     }
 
     public function offsetExists($offset) : bool
     {
-        $this->loadObject();
+        $this->loadArray();
 
-        return \property_exists($this->data, $offset);
+        return \array_key_exists($offset, $this->data);
     }
 
     public function offsetGet($offset) : int|string|float|bool|array|\stdClass|null
     {
-        $this->loadObject();
+        $this->loadArray();
 
-        return $this->data->{$offset};
+        return $this->data[$offset];
     }
 
     public function offsetSet($offset, $value) : void
     {
-        $this->loadObject();
-        $this->data->{$offset} = $value;
+        $this->loadArray();
+        $this->data[$offset] = $value;
         $this->string = null;
     }
 
     public function offsetUnset($offset) : void
     {
-        $this->loadObject();
-        unset($this->data->{$offset});
+        $this->loadArray();
+        unset($this->data[$offset]);
         $this->string = null;
     }
 
@@ -90,16 +90,16 @@ final class MapJson extends \Infinityloop\Utils\Json\JsonContract
         $this->string = \json_encode(value: $this->data, flags: self::FLAGS);
     }
 
-    private function loadObject() : void
+    private function loadArray() : void
     {
-        if ($this->data instanceof \stdClass) {
+        if (\is_array($this->data)) {
             return;
         }
 
         $result = \json_decode(json: $this->string, associative: false, flags: self::FLAGS);
 
-        if (!$result instanceof \stdClass) {
-            throw new \RuntimeException('Required JSON object, got scalar or list.');
+        if (!\is_array($result)) {
+            throw new \RuntimeException('Required JSON list, got scalar or object.');
         }
 
         $this->data = $result;

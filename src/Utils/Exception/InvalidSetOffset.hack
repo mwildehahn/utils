@@ -1,7 +1,3 @@
-<?php
-
-declare(strict_types = 1);
-
 namespace Infinityloop\Utils\Exception;
 
 final class InvalidSetOffset extends \Exception
