@@ -1,22 +1,22 @@
 namespace Infinityloop\Tests\Utils;
 
-final class ObjectSetTest extends \PHPUnit\Framework\TestCase
-{
-    public function testToArray() : void
-    {
-        $array = (new \Infinityloop\Tests\Utils\EmptyClassSet([
-            new \Infinityloop\Tests\Utils\EmptyClass(),
-            new \Infinityloop\Tests\Utils\EmptyClass(),
-        ]))->toArray();
+use function Facebook\FBExpect\expect;
+use namespace HH\Lib\C;
 
-        self::assertCount(2, $array);
-        self::assertArrayHasKey(0, $array);
-        self::assertArrayHasKey(1, $array);
+final class ObjectSetTest extends \Facebook\HackTest\HackTest {
+    public function testToVec(): void {
+        $vec = (
+            new \Infinityloop\Tests\Utils\EmptyClassSet(vec[
+                new \Infinityloop\Tests\Utils\EmptyClass(),
+                new \Infinityloop\Tests\Utils\EmptyClass(),
+            ])
+        )->toVec();
+
+        expect(C\count($vec))->toBeSame(2);
     }
 
-    public function testIterator() : void
-    {
-        $instance = new \Infinityloop\Tests\Utils\EmptyClassSet([
+    public function testIterator(): void {
+        $instance = new \Infinityloop\Tests\Utils\EmptyClassSet(vec[
             new \Infinityloop\Tests\Utils\EmptyClass(),
             new \Infinityloop\Tests\Utils\EmptyClass(),
             new \Infinityloop\Tests\Utils\EmptyClass(),
@@ -26,8 +26,8 @@ final class ObjectSetTest extends \PHPUnit\Framework\TestCase
         $index = 0;
 
         foreach ($instance as $key => $value) {
-            self::assertSame($index, $key);
-            self::assertInstanceOf(EmptyClass::class, $value);
+            expect($index)->toBeSame($key);
+            expect($value)->toBeInstanceOf(EmptyClass::class);
 
             ++$index;
         }
@@ -35,135 +35,104 @@ final class ObjectSetTest extends \PHPUnit\Framework\TestCase
         $index = 0;
 
         foreach ($instance as $key => $value) {
-            self::assertSame($index, $key);
-            self::assertInstanceOf(EmptyClass::class, $value);
+            expect($index)->toBeSame($key);
+            expect($value)->toBeInstanceOf(EmptyClass::class);
 
             ++$index;
         }
     }
 
-    public function testCount() : void
-    {
-        $instance = new \Infinityloop\Tests\Utils\EmptyClassSet([
+    public function testCount(): void {
+        $instance = new \Infinityloop\Tests\Utils\EmptyClassSet(vec[
             new \Infinityloop\Tests\Utils\EmptyClass(),
             new \Infinityloop\Tests\Utils\EmptyClass(),
             new \Infinityloop\Tests\Utils\EmptyClass(),
         ]);
 
-        self::assertSame(3, $instance->count());
+        expect(3)->toBeSame($instance->count());
     }
 
-    public function testOffsetExists() : void
-    {
-        $instance = new \Infinityloop\Tests\Utils\EmptyClassSet([
+    public function testOffsetExists(): void {
+        $instance = new \Infinityloop\Tests\Utils\EmptyClassSet(vec[
             new \Infinityloop\Tests\Utils\EmptyClass(),
             new \Infinityloop\Tests\Utils\EmptyClass(),
             new \Infinityloop\Tests\Utils\EmptyClass(),
         ]);
 
-        self::assertTrue($instance->offsetExists(0));
-        self::assertTrue(isset($instance[0]));
-        self::assertTrue($instance->offsetExists(1));
-        self::assertTrue(isset($instance[1]));
-        self::assertTrue($instance->offsetExists(2));
-        self::assertTrue(isset($instance[2]));
-        self::assertFalse($instance->offsetExists(3));
-        self::assertFalse(isset($instance[3]));
+        expect($instance->offsetExists(0))->toBeTrue();
+        expect($instance->offsetExists(1))->toBeTrue();
+        expect($instance->offsetExists(2))->toBeTrue();
+        expect($instance->offsetExists(3))->toBeFalse();
     }
 
-    public function testOffsetGet() : void
-    {
-        $instance = new \Infinityloop\Tests\Utils\EmptyClassSet([
+    public function testOffsetGet(): void {
+        $instance = new \Infinityloop\Tests\Utils\EmptyClassSet(vec[
             new \Infinityloop\Tests\Utils\EmptyClass(),
             new \Infinityloop\Tests\Utils\EmptyClass(),
             new \Infinityloop\Tests\Utils\EmptyClass(),
         ]);
 
-        self::assertInstanceOf(EmptyClass::class, $instance[0]);
-        self::assertInstanceOf(EmptyClass::class, $instance[1]);
-        self::assertInstanceOf(EmptyClass::class, $instance[2]);
+        expect($instance->offsetGet(0))->toBeInstanceOf(EmptyClass::class);
+        expect($instance->offsetGet(1))->toBeInstanceOf(EmptyClass::class);
+        expect($instance->offsetGet(2))->toBeInstanceOf(EmptyClass::class);
     }
 
-    public function testInvalidOffsetGet() : void
-    {
-        $this->expectException(\Infinityloop\Utils\Exception\UnknownOffset::class);
-        $this->expectExceptionMessage(\sprintf(\Infinityloop\Utils\Exception\UnknownOffset::MESSAGE, 3));
-
-        $instance = new \Infinityloop\Tests\Utils\EmptyClassSet([
+    public function testInvalidOffsetGet(): void {
+        $instance = new \Infinityloop\Tests\Utils\EmptyClassSet(vec[
             new \Infinityloop\Tests\Utils\EmptyClass(),
             new \Infinityloop\Tests\Utils\EmptyClass(),
         ]);
-        $instance->offsetGet(3);
+        expect(() ==> {
+            $instance->offsetGet(3);
+        })->toThrow(\Infinityloop\Utils\Exception\UnknownOffset::class);
     }
 
-    public function testOffsetSet() : void
-    {
-        $instance = new \Infinityloop\Tests\Utils\EmptyClassSet([]);
-        $instance[] = new \Infinityloop\Tests\Utils\EmptyClass();
-        $instance[] = new \Infinityloop\Tests\Utils\EmptyClass();
-        $instance[10] = new \Infinityloop\Tests\Utils\EmptyClass();
+    public function testOffsetSet(): void {
+        $instance = new \Infinityloop\Tests\Utils\EmptyClassSet(vec[]);
+        $instance->offsetSet(null, new \Infinityloop\Tests\Utils\EmptyClass());
+        $instance->offsetSet(null, new \Infinityloop\Tests\Utils\EmptyClass());
 
-        self::assertArrayHasKey(0, $instance);
-        self::assertArrayHasKey(1, $instance);
-        self::assertArrayHasKey(10, $instance);
+        expect($instance->offsetExists(0))->toBeTrue();
+        expect($instance->offsetExists(1))->toBeTrue();
     }
 
-    public function testInvalidOffsetSet() : void
-    {
-        $this->expectException(\Infinityloop\Utils\Exception\InvalidSetOffset::class);
-        $this->expectExceptionMessage(\Infinityloop\Utils\Exception\InvalidSetOffset::MESSAGE);
-
-        $instance = new \Infinityloop\Tests\Utils\EmptyClassSet([]);
-        $instance['abc'] = new \Infinityloop\Tests\Utils\EmptyClass();
-    }
-
-    public function testOffsetUnset() : void
-    {
-        $instance = new \Infinityloop\Tests\Utils\EmptyClassSet([
+    public function testOffsetUnset(): void {
+        $instance = new \Infinityloop\Tests\Utils\EmptyClassSet(vec[
             new \Infinityloop\Tests\Utils\EmptyClass(),
             new \Infinityloop\Tests\Utils\EmptyClass(),
             new \Infinityloop\Tests\Utils\EmptyClass(),
         ]);
 
-        self::assertCount(3, $instance);
-        self::assertArrayHasKey(0, $instance);
-        self::assertArrayHasKey(1, $instance);
-        self::assertArrayHasKey(2, $instance);
+        expect($instance->count())->toBeSame(3);
+        expect($instance->offsetExists(0))->toBeTrue();
+        expect($instance->offsetExists(1))->toBeTrue();
+        expect($instance->offsetExists(2))->toBeTrue();
 
         $instance->offsetUnset(1);
+        expect($instance->count())->toBeSame(2);
 
-        self::assertCount(2, $instance);
-        self::assertArrayNotHasKey(1, $instance);
-
-        $instance->offsetUnset(2);
-
-        self::assertCount(1, $instance);
-        self::assertArrayNotHasKey(2, $instance);
+        $instance->offsetUnset(1);
+        expect($instance->count())->toBeSame(1);
 
         $instance->offsetUnset(0);
-
-        self::assertCount(0, $instance);
-        self::assertArrayNotHasKey(0, $instance);
+        expect($instance->count())->toBeSame(0);
     }
 
-    public function testInvalidOffsetUnset() : void
-    {
-        $this->expectException(\Infinityloop\Utils\Exception\UnknownOffset::class);
-        $this->expectExceptionMessage(\sprintf(\Infinityloop\Utils\Exception\UnknownOffset::MESSAGE, 0));
-
-        $instance = new \Infinityloop\Tests\Utils\EmptyClassSet([]);
-        $instance->offsetUnset(0);
+    public function testInvalidOffsetUnset(): void {
+        $instance = new \Infinityloop\Tests\Utils\EmptyClassSet(vec[]);
+        expect(() ==> {
+            $instance->offsetUnset(0);
+        })->toThrow(\Infinityloop\Utils\Exception\UnknownOffset::class);
     }
 
-    public function testMerge() : void
-    {
-        $instance = new \Infinityloop\Tests\Utils\EmptyClassSet([
+    public function testMerge(): void {
+        $instance = new \Infinityloop\Tests\Utils\EmptyClassSet(vec[
             new \Infinityloop\Tests\Utils\EmptyClass(),
             new \Infinityloop\Tests\Utils\EmptyClass(),
             new \Infinityloop\Tests\Utils\EmptyClass(),
         ]);
 
-        $secondInstance = new \Infinityloop\Tests\Utils\EmptyClassSet([
+        $secondInstance = new \Infinityloop\Tests\Utils\EmptyClassSet(vec[
             new \Infinityloop\Tests\Utils\EmptyClass(),
             new \Infinityloop\Tests\Utils\EmptyClass(),
             new \Infinityloop\Tests\Utils\EmptyClass(),
@@ -171,19 +140,18 @@ final class ObjectSetTest extends \PHPUnit\Framework\TestCase
 
         $instance->merge($secondInstance);
 
-        self::assertCount(6, $instance);
-        self::assertCount(3, $secondInstance);
+        expect($instance->count())->toBeSame(6);
+        expect($secondInstance->count())->toBeSame(3);
     }
 
-    public function testMergeReplace() : void
-    {
-        $instance = new \Infinityloop\Tests\Utils\EmptyClassSet([
+    public function testMergeReplace(): void {
+        $instance = new \Infinityloop\Tests\Utils\EmptyClassSet(vec[
             new \Infinityloop\Tests\Utils\EmptyClass(),
             new \Infinityloop\Tests\Utils\EmptyClass(),
             new \Infinityloop\Tests\Utils\EmptyClass(),
         ]);
 
-        $secondInstance = new \Infinityloop\Tests\Utils\EmptyClassSet([
+        $secondInstance = new \Infinityloop\Tests\Utils\EmptyClassSet(vec[
             new \Infinityloop\Tests\Utils\EmptyClass(),
             new \Infinityloop\Tests\Utils\EmptyClass(),
             new \Infinityloop\Tests\Utils\EmptyClass(),
@@ -191,36 +159,7 @@ final class ObjectSetTest extends \PHPUnit\Framework\TestCase
 
         $instance->merge($secondInstance, true);
 
-        self::assertCount(3, $instance);
-        self::assertCount(3, $secondInstance);
-    }
-
-    public function testMergeInvalid() : void
-    {
-        $this->expectException(\Infinityloop\Utils\Exception\InvalidTypeToMerge::class);
-        $this->expectExceptionMessage(\Infinityloop\Utils\Exception\InvalidTypeToMerge::MESSAGE);
-
-        $instance = new \Infinityloop\Tests\Utils\EmptyClassSet([]);
-        $secondInstance = new \Infinityloop\Tests\Utils\NamedClassSet([]);
-
-        $instance->merge($secondInstance);
-    }
-
-    public function testInvalidInput() : void
-    {
-        $this->expectException(\Infinityloop\Utils\Exception\InvalidInput::class);
-        $this->expectExceptionMessage(\sprintf(\Infinityloop\Utils\Exception\InvalidInput::MESSAGE, EmptyClass::class));
-
-        new \Infinityloop\Tests\Utils\EmptyClassSet([
-            new \Infinityloop\Tests\Utils\NamedClass('a'),
-        ]);
-    }
-
-    public function testInvalidInputScalar() : void
-    {
-        $this->expectException(\Infinityloop\Utils\Exception\InvalidInput::class);
-        $this->expectExceptionMessage(\sprintf(\Infinityloop\Utils\Exception\InvalidInput::MESSAGE, EmptyClass::class));
-
-        $res = new \Infinityloop\Tests\Utils\EmptyClassSet(['bla']);
+        expect($instance->count())->toBeSame(3);
+        expect($secondInstance->count())->toBeSame(3);
     }
 }

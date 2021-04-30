@@ -1,16 +1,17 @@
 namespace Infinityloop\Tests\Utils;
 
-final class ObjectMapTest extends \PHPUnit\Framework\TestCase
-{
-    public function testMerge() : void
-    {
-        $instance = new \Infinityloop\Tests\Utils\NamedClassSet([
+use function Facebook\FBExpect\expect;
+use namespace HH\Lib\C;
+
+final class ObjectMapTest extends \Facebook\HackTest\HackTest {
+    public function testMerge(): void {
+        $instance = new \Infinityloop\Tests\Utils\NamedClassSet(dict[
             'a' => new \Infinityloop\Tests\Utils\NamedClass('a'),
             'b' => new \Infinityloop\Tests\Utils\NamedClass('b'),
             'c' => new \Infinityloop\Tests\Utils\NamedClass('c'),
         ]);
 
-        $secondInstance = new \Infinityloop\Tests\Utils\NamedClassSet([
+        $secondInstance = new \Infinityloop\Tests\Utils\NamedClassSet(dict[
             'x' => new \Infinityloop\Tests\Utils\NamedClass('x'),
             'y' => new \Infinityloop\Tests\Utils\NamedClass('y'),
             'z' => new \Infinityloop\Tests\Utils\NamedClass('z'),
@@ -18,19 +19,18 @@ final class ObjectMapTest extends \PHPUnit\Framework\TestCase
 
         $instance->merge($secondInstance);
 
-        self::assertCount(6, $instance);
-        self::assertCount(3, $secondInstance);
+        expect($instance->count())->toBeSame(6);
+        expect($secondInstance->count())->toBeSame(3);
     }
 
-    public function testMergeReplace() : void
-    {
-        $instance = new \Infinityloop\Tests\Utils\NamedClassSet([
+    public function testMergeReplace(): void {
+        $instance = new \Infinityloop\Tests\Utils\NamedClassSet(dict[
             'a' => new \Infinityloop\Tests\Utils\NamedClass('a'),
             'b' => new \Infinityloop\Tests\Utils\NamedClass('b'),
             'c' => new \Infinityloop\Tests\Utils\NamedClass('c'),
         ]);
 
-        $secondInstance = new \Infinityloop\Tests\Utils\NamedClassSet([
+        $secondInstance = new \Infinityloop\Tests\Utils\NamedClassSet(dict[
             'x' => new \Infinityloop\Tests\Utils\NamedClass('x'),
             'y' => new \Infinityloop\Tests\Utils\NamedClass('y'),
             'a' => new \Infinityloop\Tests\Utils\NamedClass('z'),
@@ -38,36 +38,25 @@ final class ObjectMapTest extends \PHPUnit\Framework\TestCase
 
         $instance->merge($secondInstance, true);
 
-        self::assertCount(5, $instance);
-        self::assertCount(3, $secondInstance);
+        expect(5)->toBeSame($instance->count());
+        expect(3)->toBeSame($secondInstance->count());
     }
 
-    public function testMergeNoReplace() : void
-    {
-        $this->expectException(\Infinityloop\Utils\Exception\ItemAlreadyExists::class);
-        $this->expectExceptionMessage(\Infinityloop\Utils\Exception\ItemAlreadyExists::MESSAGE);
-
-        $instance = new \Infinityloop\Tests\Utils\NamedClassSet([
+    public function testMergeNoReplace(): void {
+        $instance = new \Infinityloop\Tests\Utils\NamedClassSet(dict[
             'a' => new \Infinityloop\Tests\Utils\NamedClass('a'),
             'b' => new \Infinityloop\Tests\Utils\NamedClass('b'),
             'c' => new \Infinityloop\Tests\Utils\NamedClass('c'),
         ]);
 
-        $secondInstance = new \Infinityloop\Tests\Utils\NamedClassSet([
+        $secondInstance = new \Infinityloop\Tests\Utils\NamedClassSet(dict[
             'x' => new \Infinityloop\Tests\Utils\NamedClass('x'),
             'y' => new \Infinityloop\Tests\Utils\NamedClass('y'),
             'a' => new \Infinityloop\Tests\Utils\NamedClass('z'),
         ]);
 
-        $instance->merge($secondInstance);
-    }
-
-    public function testInvalidOffsetSet() : void
-    {
-        $this->expectException(\Infinityloop\Utils\Exception\InvalidMapOffset::class);
-        $this->expectExceptionMessage(\Infinityloop\Utils\Exception\InvalidMapOffset::MESSAGE);
-
-        $instance = new \Infinityloop\Tests\Utils\NamedClassSet();
-        $instance[1] = new \Infinityloop\Tests\Utils\NamedClass('a');
+        expect(() ==> {
+            $instance->merge($secondInstance);
+        })->toThrow(\Infinityloop\Utils\Exception\ItemAlreadyExists::class);
     }
 }
